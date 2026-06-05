@@ -1,0 +1,6 @@
+{
+  "name": "Interactive Testing Platform",
+  "description": "A modern, high-fidelity platform for taking interactive technical skills tests, coding challenges, and AI-generated custom exams with real-time feedback.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

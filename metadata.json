@@ -1,0 +1,244 @@
+import { motion } from "motion/react";
+import { 
+  Trophy, 
+  RefreshCw, 
+  CheckCircle, 
+  XCircle, 
+  Calendar, 
+  Award,
+  Send,
+  ExternalLink,
+  ChevronRight
+} from "lucide-react";
+
+interface ComparisonItem {
+  questionNumber: number;
+  studentAnswer: string;
+  correctAnswer: string;
+  isCorrect: boolean;
+}
+
+interface ResultsResponse {
+  submissionId: string;
+  name: string;
+  code: string;
+  score: number;
+  totalQuestions: number;
+  percentage: number;
+  comparison: ComparisonItem[];
+}
+
+interface ResultsScreenProps {
+  results: ResultsResponse;
+  onRestart: () => void;
+}
+
+export default function ResultsScreen({ results, onRestart }: ResultsScreenProps) {
+  const getFeedbackMessage = (pct: number) => {
+    if (pct >= 90) return { title: "Ajoyib! Zo'r natija", desc: "Siz mavzuni mukammal darajada o'zlashtirdingiz!", color: "text-emerald-400" };
+    if (pct >= 70) return { title: "Yaxshi ko'rsatkich!", desc: "Siz yaxshi o'zlashtirdingiz, xatolarni tahlil qilishni unutmang.", color: "text-indigo-400" };
+    if (pct >= 50) return { title: "Qoniqarli natija", desc: "Mavzuni yana biroz takrorlashingiz tavsiya etiladi.", color: "text-amber-400" };
+    return { title: "Yana biroz tayyorlanish kerak", desc: "Xatolaringiz ustida diqqat bilan ishlang va qayta urinib ko'ring.", color: "text-red-400" };
+  };
+
+  const feedback = getFeedbackMessage(results.percentage);
+
+  return (
+    <div className="flex-1 flex flex-col p-4 selection:bg-indigo-500 selection:text-white overflow-y-auto select-none scrollbar-thin" id="results-dashboard">
+      
+      {/* Top Banner Award Card */}
+      <main className="w-full mx-auto space-y-4" id="results-main">
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.98 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.4 }}
+          className="bg-slate-900/30 border border-slate-900 rounded-2xl p-4 shadow-xl relative overflow-hidden"
+          id="award-banner-card"
+        >
+          {/* Subtle light stream behind trophy */}
+          <div className="absolute top-0 right-4 w-32 h-32 bg-indigo-500/10 rounded-full blur-2xl pointer-events-none" />
+
+          <div className="flex flex-col items-center gap-4 text-center" id="banner-flex">
+            {/* Radial score gauge */}
+            <div className="flex flex-col items-center gap-1 shrink-0 bg-slate-950/80 p-4 rounded-xl border border-slate-900 shadow-inner w-full" id="gauge-container">
+              <div className="relative w-24 h-24 flex items-center justify-center" id="score-ring">
+                <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
+                  {/* Background Track */}
+                  <circle
+                    className="text-slate-850"
+                    strokeWidth="8"
+                    stroke="currentColor"
+                    fill="transparent"
+                    r="40"
+                    cx="50"
+                    cy="50"
+                  />
+                  {/* Glowing Meter */}
+                  <motion.circle
+                    className="text-indigo-500"
+                    strokeWidth="8"
+                    strokeDasharray={2 * Math.PI * 40}
+                    initial={{ strokeDashoffset: 2 * Math.PI * 40 }}
+                    animate={{ strokeDashoffset: 2 * Math.PI * 40 * (1 - results.percentage / 100) }}
+                    transition={{ duration: 1.2, ease: "easeOut" }}
+                    strokeLinecap="round"
+                    stroke="currentColor"
+                    fill="transparent"
+                    r="40"
+                    cx="50"
+                    cy="50"
+                  />
+                </svg>
+                {/* Score Number Panel */}
+                <div className="absolute text-center" id="ring-score-panel">
+                  <h3 className="text-2xl font-mono font-extrabold text-white leading-none mb-0.5">{results.score}</h3>
+                  <span className="text-[8px] text-slate-500 font-bold uppercase tracking-wider">35 TAdan</span>
+                </div>
+              </div>
+
+              {/* Percentage */}
+              <div className="text-center font-bold tracking-tight text-white mt-0.5" id="percentage-label">
+                <span className={`text-base ${feedback.color}`}>{results.percentage}%</span>
+                <span className="text-[10px] text-slate-400 font-normal"> to'g'ri topildi</span>
+              </div>
+            </div>
+
+            {/* score details */}
+            <div className="space-y-1.5 w-full flex flex-col items-center" id="banner-left-info">
+              <div className="inline-flex items-center gap-1.5 bg-indigo-500/10 border border-indigo-500/20 px-2.5 py-1 rounded-full text-[9px] text-indigo-400 font-bold" id="submission-badge">
+                <Award className="w-3.5 h-3.5" />
+                <span>Test yakuniy natijasi</span>
+              </div>
+
+              <div id="feedback-headings">
+                <h2 className="text-lg font-display font-bold text-white mb-1 leading-snug">{feedback.title}</h2>
+                <p className="text-slate-400 text-[10px] max-w-xs mx-auto leading-normal">{feedback.desc}</p>
+              </div>
+
+              {/* User Metas */}
+              <div className="flex flex-wrap items-center justify-center gap-2 text-[10px] text-slate-500 mt-1" id="user-results-meta">
+                <span className="bg-slate-950 border border-slate-900 px-2 py-0.5 rounded-lg text-slate-300">
+                  <span className="text-slate-500">O'quvchi:</span> <strong className="text-white ml-0.5 font-bold">{results.name}</strong>
+                </span>
+                <span className="bg-slate-950 border border-slate-900 px-2 py-0.5 rounded-lg text-slate-300 font-mono">
+                  <span className="text-slate-500">Kod:</span> <strong className="text-indigo-400 font-mono font-bold">{results.code}</strong>
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Real-time Bot Alert info */}
+          <div className="mt-4 pt-4 border-t border-slate-900/40 flex flex-col items-center gap-3 bg-indigo-500/5 -mx-4 -mb-4 px-4 py-3" id="tele-sent-notif">
+            <div className="flex items-center gap-2 text-left" id="tele-label">
+              <div className="w-6 h-6 rounded-full bg-indigo-500/20 border border-indigo-500/30 flex items-center justify-center text-indigo-400 shrink-0">
+                <Send className="w-3 h-3" />
+              </div>
+              <div className="text-left">
+                <p className="text-[10px] font-bold text-slate-100">Javoblar o'qituvchiga jo'natildi</p>
+                <p className="text-[9px] text-slate-500">Telegram bot orqali real-vaqtda yetkazildi.</p>
+              </div>
+            </div>
+            
+            <button
+              onClick={onRestart}
+              className="w-full py-2 bg-slate-900 hover:bg-slate-850 text-slate-300 border border-slate-800 rounded-xl font-bold text-[10px] active:scale-95 transition-all cursor-pointer shadow flex items-center justify-center gap-1.5"
+              id="results-restart-btn"
+            >
+              <RefreshCw className="w-3 h-3 text-indigo-400 animate-spin-slow" />
+              <span>Boshqa test topshirish</span>
+            </button>
+          </div>
+        </motion.div>
+
+        {/* Detailed Solutions Comparison List (A, B, C, D matches) */}
+        <div className="space-y-3" id="answers-details-panel">
+          <div className="flex items-center justify-between border-b border-slate-900 pb-2" id="panel-title-block">
+            <h3 className="text-xs font-bold tracking-tight text-white flex items-center gap-1.5 font-display">
+              <span>Batafsil natijalar tahlili</span>
+            </h3>
+            <span className="text-[9px] text-slate-500 font-mono font-semibold">35 ta savol tahlili</span>
+          </div>
+
+          {/* Quick Stats list (Grid) */}
+          <div className="grid grid-cols-2 gap-2" id="stats-ribbon">
+            <div className="bg-slate-900/20 border border-slate-900 p-2.5 rounded-xl flex items-center gap-2">
+              <div className="w-7 h-7 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 shrink-0 animate-pulse">
+                <CheckCircle className="w-4 h-4" />
+              </div>
+              <div>
+                <p className="text-[8px] uppercase font-bold text-slate-500 tracking-wider">To'g'ri</p>
+                <p className="text-xs font-bold text-white font-mono leading-none mt-0.5">{results.score} ta</p>
+              </div>
+            </div>
+
+            <div className="bg-slate-900/20 border border-slate-900 p-2.5 rounded-xl flex items-center gap-2">
+              <div className="w-7 h-7 rounded-lg bg-red-400/10 border border-red-500/20 flex items-center justify-center text-red-400 shrink-0">
+                <XCircle className="w-4 h-4" />
+              </div>
+              <div>
+                <p className="text-[8px] uppercase font-bold text-slate-500 tracking-wider">Xato</p>
+                <p className="text-xs font-bold text-white font-mono leading-none mt-0.5">{results.totalQuestions - results.score} ta</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Questions Grid Table */}
+          <div className="bg-slate-900/25 border border-slate-900 rounded-2xl overflow-hidden shadow-inner p-3" id="grading-table-container">
+            <div className="grid grid-cols-3 gap-1.5" id="grading-grid">
+              {results.comparison.map((item) => (
+                <div 
+                  key={item.questionNumber}
+                  className={`border rounded-lg p-2.5 flex flex-col justify-between transition-all relative ${
+                    item.isCorrect 
+                      ? "bg-emerald-950/5 border-emerald-950 text-emerald-400" 
+                      : "bg-red-950/5 border-red-950 text-red-400"
+                  }`}
+                  id={`comp-item-${item.questionNumber}`}
+                >
+                  <div className="flex items-center justify-between text-[9px] border-b border-slate-900 pb-1 mb-1 font-mono">
+                    <span className="font-bold text-slate-400">{item.questionNumber}-savol</span>
+                    <span className={`w-1.5 h-1.5 rounded-full ${item.isCorrect ? "bg-emerald-500" : "bg-red-500"}`} />
+                  </div>
+                  
+                  <div className="space-y-1" id={`status-keys-${item.questionNumber}`}>
+                    <div className="flex justify-between items-center text-[10px]">
+                      <span className="text-slate-500 font-sans text-[9px]">Sizniki:</span>
+                      <strong className={`font-mono text-[11px] uppercase ${item.isCorrect ? "text-emerald-400" : "text-red-400"}`}>
+                        {item.studentAnswer || "-"}
+                      </strong>
+                    </div>
+                    
+                    {!item.isCorrect && (
+                      <div className="flex justify-between items-center text-[10px]">
+                        <span className="text-slate-500 font-sans text-[9px]">Kalit (To'g'ri):</span>
+                        <strong className="font-mono text-[11px] uppercase text-emerald-400 bg-emerald-500/10 px-1 rounded">
+                          {item.correctAnswer}
+                        </strong>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </main>
+
+      {/* Small Bot Prompt Link footer */}
+      <footer className="py-4 text-center text-[10px] text-slate-500 border-t border-slate-900 mt-4" id="results-footer">
+        <p className="flex flex-col items-center justify-center gap-1">
+          <span>Tizim haqida savollar bormi? Admin bilan bo'g'laning:</span>
+          <a
+            href="https://t.me/attesttestbot"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-indigo-400 hover:text-indigo-300 font-semibold inline-flex items-center gap-0.5 transition-colors cursor-pointer"
+          >
+            <span>@attesttestbot telegram kanali</span>
+            <ExternalLink className="w-3 h-3" />
+          </a>
+        </p>
+      </footer>
+    </div>
+  );
+}
